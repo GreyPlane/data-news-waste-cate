@@ -1,0 +1,10 @@
+g.links {
+  fill: none;
+  stroke-opacity: 0.5;
+  > .link {
+    mix-blend-mode: multiply;
+    > path:hover {
+      stroke: #aaa;
+    }
+  }
+}

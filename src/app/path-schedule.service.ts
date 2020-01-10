@@ -1,0 +1,140 @@
+import { Injectable, OnInit } from "@angular/core";
+import { positionsF, positionsT } from "src/constants/data";
+import {
+  Position,
+  POSITION_TAG,
+  DISTRICT,
+  CATEGORY_OF_FACTORY
+} from "src/types/data";
+import { Poi, ILngLat } from "ngx-amap";
+import { WASTE_CATEGORY } from "src/constants/enum";
+
+@Injectable({
+  providedIn: "root"
+})
+export class PathScheduleService implements OnInit {
+  private data: {
+    factories: Position[];
+    transferStations: Position[];
+  };
+  constructor() {}
+  ngOnInit() {
+    this.data = this.getData();
+  }
+  private shortestDistanceWithStart(start: Poi) {
+    return (a: Position, b: Position) => {
+      return this.distance(a.lnglgt, start.location) <
+        this.distance(b.lnglgt, start.location)
+        ? -1
+        : this.distance(a.lnglgt, start.location) ===
+          this.distance(b.lnglgt, start.location)
+        ? 0
+        : 1;
+    };
+  }
+  private decide(
+    xsMatchedDist: Position[],
+    xsMatchedCate: Position[],
+    start: Poi
+  ): Position {
+    let result: Position;
+    switch (xsMatchedDist.length) {
+      case 0:
+        result = xsMatchedCate.sort(this.shortestDistanceWithStart(start))[0];
+        break;
+      case 1:
+        result = xsMatchedCate[0];
+        break;
+      default:
+        result = xsMatchedDist.sort(this.shortestDistanceWithStart(start))[0];
+        break;
+    }
+    return result;
+  }
+  distance(p1: ILngLat, p2: ILngLat) {
+    const EARTH_RADIUS = 6378.137;
+    const rad = (ang: number) => (ang * Math.PI) / 180;
+    const p1Lat = rad(p1[1]);
+    const p2Lat = rad(p2[1]);
+    const a = p1Lat - p2Lat;
+    const b = rad(p1[0]) - rad(p2[0]);
+    return (
+      (Math.round(
+        2 *
+          Math.asin(
+            Math.sqrt(
+              Math.pow(Math.sin(a / 2), 2) +
+                Math.cos(p1Lat) * Math.cos(p2Lat) * Math.pow(Math.sin(b / 2), 2)
+            )
+          ) *
+          EARTH_RADIUS *
+          10000
+      ) /
+        10000) *
+      1000
+    );
+  }
+  getData(strategy: "local" | "remote" = "local") {
+    switch (strategy) {
+      case "local":
+        return {
+          factories: positionsF,
+          transferStations: positionsT
+        };
+
+      default:
+        console.log("not avaliable");
+        return {
+          factories: positionsF,
+          transferStations: positionsT
+        };
+    }
+  }
+  getPoint(start: Poi, cate: WASTE_CATEGORY) {
+    const district = <DISTRICT>start.adname;
+    let { factories, transferStations } = this.data;
+
+    let fn: (fac: Position) => boolean;
+    const ffn = (cate: CATEGORY_OF_FACTORY) => (fac: Position) => {
+      if (fac.tag === POSITION_TAG.FACTORY) {
+        return fac.kind! === cate;
+      } else {
+        throw "must be factory positions";
+      }
+    };
+
+    //
+    switch (cate) {
+      case WASTE_CATEGORY.Dry:
+        fn = ffn(CATEGORY_OF_FACTORY.BURNING);
+        break;
+      case WASTE_CATEGORY.Moist:
+        fn = ffn(CATEGORY_OF_FACTORY.RECYCLE);
+        break;
+      case WASTE_CATEGORY.Recycle:
+        fn = ffn(CATEGORY_OF_FACTORY.ORG_SOILD);
+        break;
+      case WASTE_CATEGORY.Harzard:
+        // wip
+        break;
+      default:
+        break;
+    }
+    //
+    let factoriesMatchedCate = factories.filter(fn);
+    let factoriesMatchedDist = factoriesMatchedCate.filter(
+      fac => fac.district === district
+    );
+    let transfersMatchedDist = transferStations.filter(
+      tra => tra.district === district
+    );
+    return {
+      factory: this.decide(factoriesMatchedDist, factoriesMatchedCate, start),
+      transferStation: this.decide(
+        transfersMatchedDist,
+        transferStations,
+        start
+      )
+    };
+  }
+}

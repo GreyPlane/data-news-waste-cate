@@ -1,0 +1,37 @@
+<svg [style.width.px]="svgWidth" [style.height.px]="svgHeight">
+  <g class="nodes">
+    <rect
+      class="node"
+      *ngFor="let node of sankeyLayout.nodes; let $index"
+      [attr.x]="node.x0"
+      [attr.y]="node.y0"
+      [attr.width]="node.x1 - node.x0"
+      [attr.height]="node.y1 - node.y0"
+      [attr.fill]="node.color"
+    >
+      <title>{{ node.name }}</title>
+    </rect>
+  </g>
+
+  <g class="links">
+    <g class="link" *ngFor="let link of sankeyLayout.links; let $index">
+      <path
+        [attr.d]="link.path"
+        [attr.stroke]="link.color"
+        [attr.stroke-width]="link.width"
+      ></path>
+    </g>
+  </g>
+
+  <g class="labels">
+    <g class="node-label" *ngFor="let node of sankeyLayout.nodes; let $index">
+      <text
+        [attr.x]="node.label.x"
+        [attr.y]="node.label.y"
+        [attr.dy]="node.label.dy"
+      >
+        {{ node.name }}
+      </text>
+    </g>
+  </g>
+</svg>
