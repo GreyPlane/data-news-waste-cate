@@ -21,6 +21,7 @@ export enum CATEGORY_OF_FACTORY {
   RECYCLE
 }
 export interface Position {
+  name: string;
   district: DISTRICT;
   lnglgt: ILngLat;
   tag: POSITION_TAG;

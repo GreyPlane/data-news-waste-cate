@@ -1,33 +1,24 @@
 import { Injectable, OnInit } from "@angular/core";
+import { ILngLat, Poi } from "ngx-amap";
 import { positionsF, positionsT } from "src/constants/data";
-import {
-  Position,
-  POSITION_TAG,
-  DISTRICT,
-  CATEGORY_OF_FACTORY
-} from "src/types/data";
-import { Poi, ILngLat } from "ngx-amap";
 import { WASTE_CATEGORY } from "src/constants/enum";
+import {
+  CATEGORY_OF_FACTORY,
+  DISTRICT,
+  Position,
+  POSITION_TAG
+} from "src/types/data";
 
 @Injectable({
   providedIn: "root"
 })
-export class PathScheduleService implements OnInit {
-  private data: {
-    factories: Position[];
-    transferStations: Position[];
-  };
+export class PathScheduleService {
   constructor() {}
-  ngOnInit() {
-    this.data = this.getData();
-  }
-  private shortestDistanceWithStart(start: Poi) {
+  private shortestDistanceWithStart(start: ILngLat) {
     return (a: Position, b: Position) => {
-      return this.distance(a.lnglgt, start.location) <
-        this.distance(b.lnglgt, start.location)
+      return this.distance(a.lnglgt, start) < this.distance(b.lnglgt, start)
         ? -1
-        : this.distance(a.lnglgt, start.location) ===
-          this.distance(b.lnglgt, start.location)
+        : this.distance(a.lnglgt, start) === this.distance(b.lnglgt, start)
         ? 0
         : 1;
     };
@@ -35,7 +26,7 @@ export class PathScheduleService implements OnInit {
   private decide(
     xsMatchedDist: Position[],
     xsMatchedCate: Position[],
-    start: Poi
+    start: ILngLat
   ): Position {
     let result: Position;
     switch (xsMatchedDist.length) {
@@ -51,7 +42,7 @@ export class PathScheduleService implements OnInit {
     }
     return result;
   }
-  distance(p1: ILngLat, p2: ILngLat) {
+  private distance(p1: ILngLat, p2: ILngLat): number {
     const EARTH_RADIUS = 6378.137;
     const rad = (ang: number) => (ang * Math.PI) / 180;
     const p1Lat = rad(p1[1]);
@@ -92,7 +83,7 @@ export class PathScheduleService implements OnInit {
   }
   getPoint(start: Poi, cate: WASTE_CATEGORY) {
     const district = <DISTRICT>start.adname;
-    let { factories, transferStations } = this.data;
+    let { factories, transferStations } = this.getData();
 
     let fn: (fac: Position) => boolean;
     const ffn = (cate: CATEGORY_OF_FACTORY) => (fac: Position) => {
@@ -129,12 +120,23 @@ export class PathScheduleService implements OnInit {
       tra => tra.district === district
     );
     return {
-      factory: this.decide(factoriesMatchedDist, factoriesMatchedCate, start),
+      factory: this.decide(
+        factoriesMatchedDist,
+        factoriesMatchedCate,
+        start.location
+      ),
       transferStation: this.decide(
         transfersMatchedDist,
         transferStations,
-        start
+        start.location
       )
     };
+  }
+  getShortestTans2Fac(
+    transferStation: Position,
+    factories: Position[]
+  ): Position {
+    factories.sort(this.shortestDistanceWithStart(transferStation.lnglgt));
+    return factories[0];
   }
 }

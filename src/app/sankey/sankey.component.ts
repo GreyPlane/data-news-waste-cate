@@ -65,7 +65,8 @@ export class SankeyComponent implements OnInit, OnChanges {
           width - this.margin.left - this.margin.right,
           height - this.margin.top - this.margin.bottom
         ]
-      ]);
+      ])
+     // .nodeId(d => d.id);
     const data = {
       nodes,
       links
@@ -73,7 +74,7 @@ export class SankeyComponent implements OnInit, OnChanges {
     const layout = generator(data);
 
     for (const node of layout.nodes) {
-      node.color = this.colorScale(node.name);
+      node.color = node.color === undefined ? this.colorScale(node.name) : node.color;
       node.label = {
         x: node.x0 < width / 2 ? node.x1 + 6 : node.x0 - 50,
         y: (node.y1 + node.y0) / 2,

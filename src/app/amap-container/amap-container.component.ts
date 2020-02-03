@@ -11,7 +11,8 @@ import {
   Poi,
   PoiList,
   WalkingResult,
-  WalkRoute
+  WalkRoute,
+  AmapDrivingService
 } from "ngx-amap";
 import { Observable, Subscription } from "rxjs";
 import { map, share, tap } from "rxjs/operators";
@@ -100,7 +101,8 @@ export class AmapContainerComponent implements OnInit, OnDestroy {
     private readonly amapWalkNavi: AmapWalkingService,
     private readonly snackBar: MatSnackBar,
     private readonly dialog: MatDialog,
-    private readonly pathSchedule: PathScheduleService
+    private readonly pathSchedule: PathScheduleService,
+    private readonly amapDrive: AmapDrivingService
   ) {}
 
   ngOnInit() {}
@@ -194,6 +196,7 @@ export class AmapContainerComponent implements OnInit, OnDestroy {
   }
   applyWalkNavi(category: WASTE_CATEGORY) {
     const plugin = this.amapWalkNaviPlugin;
+
     const start = this.selectedPoi;
     const dest = this.pathSchedule.getPoint(start, category);
     const markers = this.amap.getAllOverlays("marker");
@@ -229,6 +232,14 @@ export class AmapContainerComponent implements OnInit, OnDestroy {
       })
       .catch(err => this.errorHandler(err))
       .finally(() => (this.isWalkNaviPending = false));
+  }
+  async test() {
+    const plugin = await this.amapDrive.of();
+    const result = await plugin.search([
+      { keyword: "北京市地震局(公交站)", city: "北京" },
+      { keyword: "亦庄文化园(地铁站)", city: "北京" }
+    ]);
+    return;
   }
   /* private assertWalkRoutes(routes: any): asserts routes is WalkRoute[] {
     Array.isArray(routes);

@@ -249,11 +249,12 @@ const array2LngLgt = (raw: string): ILngLat => {
   }
   return lnglgt;
 };
-function convert(raw: typeof rawData | typeof rawDataTwo): Position[] {
+function convert(raw: typeof rawData): Position[] {
   let positions: Position[] = [];
   if (typeof raw === typeof rawData) {
     for (const item of raw) {
       positions.push({
+        name: item.设施名称,
         district: <DISTRICT>item.区,
         lnglgt: array2LngLgt(item.pos),
         tag: POSITION_TAG.TANSFER_STATION
@@ -266,6 +267,7 @@ function convertFac(raw: typeof rawDataTwo) {
   let positions: Position[] = [];
   for (const item of raw) {
     positions.push({
+      name: item["处置厂（场）名称"],
       district: <DISTRICT>item.区,
       lnglgt: array2LngLgt(item.pos),
       tag: POSITION_TAG.FACTORY,

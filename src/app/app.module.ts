@@ -26,16 +26,15 @@ import { SankeyComponent } from "src/app/sankey/sankey.component";
     AppRoutingModule,
     MyMaterialModule,
     RouterModule.forRoot([
-     // { path: './', component: SearchBarComponent },
+      // { path: './', component: SearchBarComponent },
       //  { path: './Series1', component: AmapContainerComponent }
     ]),
     NgxAmapModule.forRoot({
       apiKey: "ff0a330405d98023522079e8380de656"
-    }),
+    })
   ],
   entryComponents: [SankeyDemoComponent],
-  providers: [
-  ],
+  providers: [],
   bootstrap: [AppComponent]
 })
 export class AppModule {}

@@ -1,7 +1,17 @@
 <p>sankey-demo works!</p>
-<app-sankey
-  [svgHeight]="500"
-  [svgWidth]="500"
-  [links]="links"
-  [nodes]="nodes"
-></app-sankey>
+<!-- <ng-container *ngIf="data$ | async as data; else note">
+  <app-sankey
+    [svgHeight]="500"
+    [svgWidth]="1000"
+    [links]="data.links"
+    [nodes]="data.nodes"
+  ></app-sankey>
+</ng-container>
+<ng-template #note>hold on......</ng-template>
+-->
+  <app-sankey
+    [svgHeight]="500"
+    [svgWidth]="1000"
+    [links]="links"
+    [nodes]="nodes"
+  ></app-sankey>

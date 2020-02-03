@@ -1,7 +1,13 @@
 {
-  "extends": ["tslint-microsoft-contrib/latest"],
+  "extends": ["tslint-microsoft-contrib/latest", "rxjs-tslint-rules"],
   "rulesDirectory": ["./node_modules/tslint-microsoft-contrib"],
   "rules": {
-    "export-name": false
+    "export-name": false,
+    "rxjs-add": {
+      "severity": "error"
+    },
+    "rxjs-no-unused-add": {
+      "severity": "error"
+    }
   }
 }
