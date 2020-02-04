@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit } from "@angular/core";
-import { MatDialog } from "@angular/material/dialog";
-import { MatSnackBar } from "@angular/material/snack-bar";
+import { MatDialog } from "@angular/material/dialog/index";
+import { MatSnackBar } from "@angular/material/snack-bar/index";
 import {
   AmapPlaceSearchService,
   AmapPlaceSearchWrapper,

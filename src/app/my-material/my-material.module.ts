@@ -1,21 +1,21 @@
-import { DragDropModule } from "@angular/cdk/drag-drop";
-import { LayoutModule } from "@angular/cdk/layout";
-import { STEPPER_GLOBAL_OPTIONS } from "@angular/cdk/stepper";
-import { NgModule } from '@angular/core';
-import { MatButtonModule } from "@angular/material/button";
-import { MatButtonToggleModule } from "@angular/material/button-toggle";
-import { MatCardModule } from "@angular/material/card";
-import { MatDialogModule } from "@angular/material/dialog";
-import { MatExpansionModule } from "@angular/material/expansion";
-import { MatIconModule } from "@angular/material/icon";
-import { MatInputModule } from "@angular/material/input";
-import { MatListModule } from "@angular/material/list";
-import { MatProgressSpinnerModule } from "@angular/material/progress-spinner";
-import { MatSidenavModule } from "@angular/material/sidenav";
-import { MatSnackBarModule } from "@angular/material/snack-bar";
-import { MatStepperModule } from "@angular/material/stepper";
-import { MatTabsModule } from "@angular/material/tabs";
-import { MatToolbarModule } from "@angular/material/toolbar";
+import { DragDropModule } from "@angular/cdk/drag-drop/public-api";
+import { LayoutModule } from "@angular/cdk/layout/index";
+import { STEPPER_GLOBAL_OPTIONS } from "@angular/cdk/stepper/index";
+import { NgModule } from "@angular/core";
+import { MatButtonToggleModule } from "@angular/material/button-toggle/index";
+import { MatButtonModule } from "@angular/material/button/index";
+import { MatCardModule } from "@angular/material/card/index";
+import { MatDialogModule } from "@angular/material/dialog/index";
+import { MatExpansionModule } from "@angular/material/expansion/index";
+import { MatIconModule } from "@angular/material/icon/index";
+import { MatInputModule } from "@angular/material/input/index";
+import { MatListModule } from "@angular/material/list/index";
+import { MatProgressSpinnerModule } from "@angular/material/progress-spinner/index";
+import { MatSidenavModule } from "@angular/material/sidenav/index";
+import { MatSnackBarModule } from "@angular/material/snack-bar/index";
+import { MatStepperModule } from "@angular/material/stepper/index";
+import { MatTabsModule } from "@angular/material/tabs/index";
+import { MatToolbarModule } from "@angular/material/toolbar/index";
 
 @NgModule({
   declarations: [],
@@ -59,7 +59,8 @@ import { MatToolbarModule } from "@angular/material/toolbar";
     MatProgressSpinnerModule,
     MatSnackBarModule,
     MatCardModule,
-    MatDialogModule
+    MatDialogModule,
+    MatButtonModule
   ]
 })
 export class MyMaterialModule {}

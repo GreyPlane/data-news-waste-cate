@@ -3,9 +3,9 @@
   <ngx-amap
     class="map"
     [style.height.px]="800"
-    [center]="[121.47, 31.23]"
+    [center]="$any([121.47, 31.23])"
     [zoom]="13"
-    (ready)="onMapReady($event)"
+    (ready)="onMapReady($any($event))"
     #amap
   >
     <amap-polyline
@@ -84,7 +84,7 @@
         >
           <mat-button-toggle
             *ngFor="let cate of wasteCategroies; let i = index"
-            [id]="cate"
+            [id]="wasteCategroiesName[i]"
             [value]="cate"
           >
             {{ wasteCategroiesName[i] }}
