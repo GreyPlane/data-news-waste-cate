@@ -24,6 +24,7 @@ import {
   WASTE_CATEGORY
 } from "src/constants/enum";
 import { SankeyDemoComponent } from "src/app/sankey-demo/sankey-demo.component";
+import { AssertionError } from "assert";
 interface SearchResult {
   info: string;
   poiList: PoiList;
@@ -241,7 +242,7 @@ export class AmapContainerComponent implements OnInit, OnDestroy {
     ]);
     return;
   }
-  /* private assertWalkRoutes(routes: any): asserts routes is WalkRoute[] {
+  private assertWalkRoutes(routes: any): asserts routes is WalkRoute[] {
     Array.isArray(routes);
     this.assertWalkRoute(routes[0]);
   }
@@ -256,5 +257,5 @@ export class AmapContainerComponent implements OnInit, OnDestroy {
     if (typeof result === "string") {
       throw new AssertionError();
     }
-  } */
+  }
 }
