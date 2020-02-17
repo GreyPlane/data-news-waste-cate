@@ -1,5 +1,5 @@
 import { Component, OnInit, Inject } from "@angular/core";
-import { MAT_DIALOG_DATA } from "@angular/material/dialog/index";
+import { MAT_DIALOG_DATA } from "@angular/material/dialog";
 import { WASTE_CATEGORY, wasteCategroiesName } from "src/constants/enum";
 import { text } from "src/constants/text";
 
