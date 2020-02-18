@@ -1,4 +1,5 @@
 import { NgModule } from "@angular/core";
+import { ReactiveFormsModule } from "@angular/forms";
 import { BrowserModule } from "@angular/platform-browser";
 import { BrowserAnimationsModule } from "@angular/platform-browser/animations";
 import { RouterModule } from "@angular/router";
@@ -26,7 +27,7 @@ import { SearchBarComponent } from "src/app/search-bar/search-bar.component";
     BrowserAnimationsModule,
     AppRoutingModule,
     MyMaterialModule,
-
+    ReactiveFormsModule,
     RouterModule.forRoot([
       // { path: './', component: SearchBarComponent },
       //  { path: './Series1', component: AmapContainerComponent }

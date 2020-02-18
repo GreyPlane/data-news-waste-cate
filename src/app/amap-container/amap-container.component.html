@@ -1,102 +1,95 @@
 <!--[features]="['bg', 'road', 'building', 'poi']"-->
-<div class="map-container">
-  <ngx-amap
-    class="map"
-    [style.height.px]="800"
-    [center]="$any([121.47, 31.23])"
-    [zoom]="13"
-    (ready)="onMapReady($any($event))"
-    #amap
-  >
-    <amap-polyline
-      [path]="pathToTransferStation"
-      [isOutline]="isLineHovering"
-      [borderWeight]="3"
-      [strokeWeight]="5"
-      (mouseOver)="onLineHover($event, 'mouseover')"
-      (mouseOut)="onLineHover($event, 'mouseout')"
-      (polylineClick)="onLineClick(category.value)"
-    ></amap-polyline>
-    <amap-polyline
-      [path]="pathToFactory"
-      [strokeColor]="isLineHovering ? '#3366FF' : '#000000'"
-      [borderWeight]="3"
-      [strokeWeight]="5"
-      [isOutline]="isLineHovering ? true : false"
-      (mouseOver)="onLineHover($event, 'mouseover')"
-      (mouseOut)="onLineHover($event, 'mouseout')"
-      (polylineClick)="onLineClick(category.value)"
-    ></amap-polyline>
-  </ngx-amap>
-  <mat-expansion-panel id="searchPanel" cdkDrag cdkDragBoundry=".map-container">
-    <mat-expansion-panel-header>
-      侬晓得哇？
-    </mat-expansion-panel-header>
 
-    <mat-vertical-stepper [linear]="true">
-      <mat-step
-        #stepLocation
-        label="step1"
-        state="location"
-        [completed]="isPlaceSearchComplete$ | async"
-      >
-        <ng-template matStepLabel>Find your location</ng-template>
-        <mat-form-field>
-          <input
-            #address
-            matInput
-            type="text"
-            placeholder="input your address"
-            required
-          />
-        </mat-form-field>
-        <div>
-          <button
-            mat-button
-            (click)="applyPlaceSearch(address.value)"
-            [disabled]="isPlaceSearchPending"
-          >
-            {{ isPlaceSearchPending ? '' : 'Search' }}
-            <mat-spinner *ngIf="isPlaceSearchPending"></mat-spinner>
-          </button>
-          <button
-            mat-button
-            matStepperNext
-            [disabled]="
-              isPlaceSearchPending || !(isPlaceSearchComplete$ | async)
-            "
-          >
-            Next
-          </button>
-        </div>
-      </mat-step>
-      <mat-step
-        label="step2"
-        state="category"
-        [completed]="isWalkNaviComplete$ | async"
-      >
-        <ng-template matStepLabel>choose cate</ng-template>
-        <mat-button-toggle-group
-          class="'button-group'"
-          #category="matButtonToggleGroup"
-          (change)="applyWalkNavi(category.value)"
-          [vertical]="true"
+<ngx-amap
+  class="map"
+  [style.height.px]="800"
+  [center]="$any([121.47, 31.23])"
+  [zoom]="13"
+  (ready)="onMapReady($any($event))"
+  #amap
+>
+  <amap-polyline
+    [path]="pathToTransferStation"
+    [isOutline]="isLineHovering"
+    [borderWeight]="3"
+    [strokeWeight]="5"
+    (mouseOver)="onLineHover($event, 'mouseover')"
+    (mouseOut)="onLineHover($event, 'mouseout')"
+    (polylineClick)="onLineClick(categoryControl.value)"
+  ></amap-polyline>
+  <amap-polyline
+    [path]="pathToFactory"
+    [strokeColor]="isLineHovering ? '#3366FF' : '#000000'"
+    [borderWeight]="3"
+    [strokeWeight]="5"
+    [isOutline]="isLineHovering ? true : false"
+    (mouseOver)="onLineHover($event, 'mouseover')"
+    (mouseOut)="onLineHover($event, 'mouseout')"
+    (polylineClick)="onLineClick(categoryControl.value)"
+  ></amap-polyline>
+</ngx-amap>
+<mat-expansion-panel id="searchPanel" cdkDragBoundry=".map-container" cdkDrag>
+  <mat-expansion-panel-header>
+    侬晓得哇？
+  </mat-expansion-panel-header>
+
+  <mat-vertical-stepper [linear]="true">
+    <mat-step
+      #stepLocation
+      label="step1"
+      state="location"
+      [completed]="isPlaceSearchComplete$ | async"
+    >
+      <ng-template matStepLabel>Find your location</ng-template>
+      <mat-form-field class="selector">
+        <input
+          matInput
+          [formControl]="addressControl"
+          type="text"
+          placeholder="input your address"
+          required
+        />
+      </mat-form-field>
+      <div>
+        <button
+          mat-button
+          (click)="applyPlaceSearch(addressControl.value)"
+          [disabled]="isPlaceSearchPending || addressControl.invalid"
         >
-          <mat-button-toggle
-            *ngFor="let cate of wasteCategroies; let i = index"
-            [id]="wasteCategroiesName[i]"
+          Search
+        </button>
+        <button
+          mat-button
+          matStepperNext
+          [disabled]="isPlaceSearchPending || !(isPlaceSearchComplete$ | async)"
+        >
+          Next
+        </button>
+      </div>
+    </mat-step>
+    <mat-step
+      label="step2"
+      state="category"
+      [completed]="isWalkNaviComplete$ | async"
+    >
+      <ng-template matStepLabel>choose cate</ng-template>
+      <mat-form-field class="selector">
+        <mat-label>分类</mat-label>
+        <mat-select [formControl]="categoryControl">
+          <mat-option
+            *ngFor="let cate of wasteCategories; let i = index"
             [value]="cate"
           >
             {{ wasteCategroiesName[i] }}
-          </mat-button-toggle>
-        </mat-button-toggle-group>
-      </mat-step>
-      <ng-template matStepperIcon="location">
-        <mat-icon>location_on</mat-icon>
-      </ng-template>
-      <ng-template matStepperIcon="category">
-        <mat-icon>receipt</mat-icon>
-      </ng-template>
-    </mat-vertical-stepper>
-  </mat-expansion-panel>
-</div>
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </mat-step>
+    <ng-template matStepperIcon="location">
+      <mat-icon>location_on</mat-icon>
+    </ng-template>
+    <ng-template matStepperIcon="category">
+      <mat-icon>receipt</mat-icon>
+    </ng-template>
+  </mat-vertical-stepper>
+</mat-expansion-panel>

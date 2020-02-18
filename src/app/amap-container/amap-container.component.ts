@@ -1,6 +1,7 @@
 import { Component, OnDestroy, OnInit } from "@angular/core";
 import { MatDialog } from "@angular/material/dialog";
 import { MatSnackBar } from "@angular/material/snack-bar";
+import { Validators, FormControl } from "@angular/forms";
 import {
   AmapPlaceSearchService,
   AmapPlaceSearchWrapper,
@@ -14,8 +15,8 @@ import {
   WalkRoute,
   AmapDrivingService
 } from "ngx-amap";
-import { Observable, Subscription } from "rxjs";
-import { map, share, tap } from "rxjs/operators";
+import { Observable, Subscription, Subject } from "rxjs";
+import { map, share, tap, takeUntil } from "rxjs/operators";
 import { ContentCardComponent } from "src/app/content-card/content-card.component";
 import { PathScheduleService } from "src/app/path-schedule.service";
 import {
@@ -65,7 +66,7 @@ interface F {
   providers: [PathScheduleService]
 })
 export class AmapContainerComponent implements OnInit, OnDestroy {
-  wasteCategroies: WASTE_CATEGORY[] = [
+  wasteCategories: WASTE_CATEGORY[] = [
     WASTE_CATEGORY.Dry,
     WASTE_CATEGORY.Moist,
     WASTE_CATEGORY.Harzard,
@@ -96,6 +97,10 @@ export class AmapContainerComponent implements OnInit, OnDestroy {
   pathToTransferStation: ILngLat[];
   pathToFactory: ILngLat[];
 
+  private _destroy$ = new Subject<void>();
+
+  public addressControl = new FormControl("", Validators.required);
+  public categoryControl = new FormControl(WASTE_CATEGORY.Dry);
   public isLineHovering: boolean = false;
   constructor(
     private readonly amapPlaceSearch: AmapPlaceSearchService,
@@ -106,11 +111,17 @@ export class AmapContainerComponent implements OnInit, OnDestroy {
     private readonly amapDrive: AmapDrivingService
   ) {}
 
-  ngOnInit() {}
+  ngOnInit() {
+    this.categoryControl.valueChanges
+      .pipe(takeUntil(this._destroy$))
+      .subscribe(value => this.applyWalkNavi(value));
+  }
   ngOnDestroy() {
     this.placeSearchErrorSub.unsubscribe();
     this.walkNaviErrorSub.unsubscribe();
     this.selectPoiChangeSub.unsubscribe();
+    this._destroy$.next();
+    this._destroy$.complete();
   }
   errorHandler(err: string) {
     this.snackBar.open(`something wrong: ${err}, pls retry`, "ok", {
@@ -197,7 +208,7 @@ export class AmapContainerComponent implements OnInit, OnDestroy {
   }
   applyWalkNavi(category: WASTE_CATEGORY) {
     const plugin = this.amapWalkNaviPlugin;
-
+    console.log(category);
     const start = this.selectedPoi;
     const dest = this.pathSchedule.getPoint(start, category);
     const markers = this.amap.getAllOverlays("marker");
