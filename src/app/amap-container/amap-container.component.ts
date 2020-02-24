@@ -78,21 +78,17 @@ export class AmapContainerComponent implements OnInit, OnDestroy {
   isLocated = false;
 
   amap?: Map = null;
-  selectPoiChangeSub: Subscription;
   selectedPoi: Poi;
 
   amapPlaceSearchPlugin: AmapPlaceSearchWrapper;
   isPlaceSearchComplete$: Observable<boolean>;
   isPlaceSearchPending = false;
   // placeSearchResult: SearchResult;
-  placeSearchErrorSub: Subscription;
 
   amapWalkNaviPlugin: AmapWalkingWrapper;
   walkNaviResult: WalkingResult;
   isWalkNaviComplete$: Observable<boolean>;
   isWalkNaviPending = false;
-  walkNaviErrorSub: Subscription;
-  walkNaviError: any;
 
   pathToTransferStation: ILngLat[];
   pathToFactory: ILngLat[];
@@ -117,9 +113,9 @@ export class AmapContainerComponent implements OnInit, OnDestroy {
       .subscribe(value => this.applyWalkNavi(value));
   }
   ngOnDestroy() {
-    this.placeSearchErrorSub.unsubscribe();
-    this.walkNaviErrorSub.unsubscribe();
-    this.selectPoiChangeSub.unsubscribe();
+    // this.placeSearchErrorSub.unsubscribe();
+    // this.walkNaviErrorSub.unsubscribe();
+    // this.selectPoiChangeSub.unsubscribe();
     this._destroy$.next();
     this._destroy$.complete();
   }
@@ -180,13 +176,15 @@ export class AmapContainerComponent implements OnInit, OnDestroy {
         map(res => (res.info === RESULT_STATUS.NO_DATA ? false : true)),
         share()
       );
-    this.selectPoiChangeSub = this.amapPlaceSearchPlugin
+    this.amapPlaceSearchPlugin
       .on("selectChanged")
+      .pipe(takeUntil(this._destroy$))
       .subscribe(selectChangeEvent => {
         this.selectedPoi = selectChangeEvent.selected.data;
       });
-    this.placeSearchErrorSub = this.amapPlaceSearchPlugin
+    this.amapPlaceSearchPlugin
       .on("error")
+      .pipe(takeUntil(this._destroy$))
       .subscribe(err => this.errorHandler(err));
   }
   applyPlaceSearch(keyword: string) {
@@ -202,13 +200,13 @@ export class AmapContainerComponent implements OnInit, OnDestroy {
       map(res => (res.info === RESULT_STATUS.NO_DATA ? false : true)),
       share()
     );
-    this.walkNaviErrorSub = this.amapPlaceSearchPlugin
+    this.amapPlaceSearchPlugin
       .on("error")
+      .pipe(takeUntil(this._destroy$))
       .subscribe(err => this.errorHandler(err));
   }
   applyWalkNavi(category: WASTE_CATEGORY) {
     const plugin = this.amapWalkNaviPlugin;
-    console.log(category);
     const start = this.selectedPoi;
     const dest = this.pathSchedule.getPoint(start, category);
     const markers = this.amap.getAllOverlays("marker");
@@ -222,19 +220,19 @@ export class AmapContainerComponent implements OnInit, OnDestroy {
           .map(result => (result.status === "complete" ? true : false))
           .reduce((acc, val) => acc && val, true);
         if (status) {
-          let resultTrans = <WalkingResult>walkResultes[0].result;
-          let resultFac = <WalkingResult>walkResultes[1].result;
-          //this.assertWalkResult(resultTrans);
-          //this.assertWalkResult(resultFac);
-          let routesTrans = <WalkRoute[]>(<unknown>resultTrans.routes);
-          let routesFac = <WalkRoute[]>(<unknown>resultFac.routes);
-          //this.assertWalkRoutes(routesTrans);
-          //this.assertWalkRoutes(routesFac);
+          let resultTrans = walkResultes[0].result;
+          let resultFac = walkResultes[1].result;
+          this.assertWalkResult(resultTrans);
+          this.assertWalkResult(resultFac);
+          let routesTrans = resultTrans.routes;
+          let routesFac = resultFac.routes;
+          this.assertWalkRoutes(routesTrans);
+          this.assertWalkRoutes(routesFac);
           // lib's type def of WalkingResult.routes was wrong
           this.pathToTransferStation = routesTrans[0].steps
             .map(step => step.path)
             .reduce((acc, val) => acc.concat(val), []);
-          // resultTrans = <WalkingResult>walkResultes[1].result;
+          // resultTrans = walkResultes[1].result;
           this.pathToFactory = routesFac[0].steps
             .map(step => step.path)
             .reduce((acc, val) => acc.concat(val), []);
