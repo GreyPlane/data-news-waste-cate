@@ -12,7 +12,14 @@ export enum DISTRICT {
   HK = "虹口",
   JA = "静安",
   CN = "长宁",
-  XH = "徐汇"
+  XH = "徐汇",
+  FX = "奉贤",
+  JS = "金山",
+  PT = "普陀",
+  JD = "嘉定",
+  QP = "青浦",
+  CM = "崇明",
+  SJ = "松江"
 }
 export enum CATEGORY_OF_FACTORY {
   LANDFILL,

@@ -34,7 +34,7 @@ export class PathScheduleService {
         result = xsMatchedCate.sort(this.shortestDistanceWithStart(start))[0];
         break;
       case 1:
-        result = xsMatchedCate[0];
+        result = xsMatchedDist[0];
         break;
       default:
         result = xsMatchedDist.sort(this.shortestDistanceWithStart(start))[0];
@@ -81,29 +81,24 @@ export class PathScheduleService {
         };
     }
   }
-  getPoint(start: Poi, cate: WASTE_CATEGORY) {
-    const district = <DISTRICT>start.adname;
-    let { factories, transferStations } = this.getData();
-
+  getFactroyCateFilter(cate: WASTE_CATEGORY) {
     let fn: (fac: Position) => boolean;
-    const ffn = (cate: CATEGORY_OF_FACTORY) => (fac: Position) => {
+    const ffn = (...cate: CATEGORY_OF_FACTORY[]) => (fac: Position) => {
       if (fac.tag === POSITION_TAG.FACTORY) {
-        return fac.kind! === cate;
+        return cate.some(c => fac.kind! === c);
       } else {
         throw "must be factory positions";
       }
     };
-
-    //
     switch (cate) {
       case WASTE_CATEGORY.Dry:
-        fn = ffn(CATEGORY_OF_FACTORY.BURNING);
+        fn = ffn(CATEGORY_OF_FACTORY.BURNING, CATEGORY_OF_FACTORY.LANDFILL);
         break;
       case WASTE_CATEGORY.Moist:
-        fn = ffn(CATEGORY_OF_FACTORY.RECYCLE);
+        fn = ffn(CATEGORY_OF_FACTORY.RECYCLE, CATEGORY_OF_FACTORY.LANDFILL);
         break;
       case WASTE_CATEGORY.Recycle:
-        fn = ffn(CATEGORY_OF_FACTORY.ORG_SOILD);
+        fn = ffn(CATEGORY_OF_FACTORY.ORG_SOILD, CATEGORY_OF_FACTORY.RECYCLE);
         break;
       case WASTE_CATEGORY.Harzard:
         // wip
@@ -111,25 +106,34 @@ export class PathScheduleService {
       default:
         break;
     }
-    //
-    let factoriesMatchedCate = factories.filter(fn);
+    return fn;
+  }
+  getPoint(start: Poi, cate: WASTE_CATEGORY) {
+    const district = <DISTRICT>start.adname;
+    let { factories, transferStations } = this.getData();
+    let factoriesMatchedCate = factories.filter(
+      this.getFactroyCateFilter(cate)
+    );
     let factoriesMatchedDist = factoriesMatchedCate.filter(
       fac => fac.district === district
     );
-    let transfersMatchedDist = transferStations.filter(
-      tra => tra.district === district
+    let transfersMatchedDist = transferStations.filter(tra =>
+      tra.district === DISTRICT.PD
+        ? tra.district + "新区" === district
+        : tra.district + "区" === district
+    );
+    const t = this.decide(
+      transfersMatchedDist,
+      transferStations,
+      start.location
     );
     return {
       factory: this.decide(
         factoriesMatchedDist,
         factoriesMatchedCate,
-        start.location
+        t.lnglgt
       ),
-      transferStation: this.decide(
-        transfersMatchedDist,
-        transferStations,
-        start.location
-      )
+      transferStation: t
     };
   }
   getShortestTans2Fac(

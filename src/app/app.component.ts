@@ -8,7 +8,7 @@ import { BreakpointObserver, Breakpoints } from "@angular/cdk/layout";
   styleUrls: ["./app.component.scss"]
 })
 export class AppComponent {
-  title = "DN-waste";
+  title = '上海市垃圾流通网络';
   public map?: Map = null;
   constructor(breakPointObserver: BreakpointObserver) {}
   run() {
@@ -17,5 +17,6 @@ export class AppComponent {
   async runAs() {}
   onMapReady(map: Map) {
     this.map = map;
+
   }
 }

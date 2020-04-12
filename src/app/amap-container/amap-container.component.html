@@ -9,27 +9,75 @@
   (ready)="onMapReady($any($event))"
   #amap
 >
-  <amap-polyline
-    [path]="pathToTransferStation"
-    [isOutline]="isLineHovering"
-    [borderWeight]="3"
-    [strokeWeight]="5"
-    (mouseOver)="onLineHover($event, 'mouseover')"
-    (mouseOut)="onLineHover($event, 'mouseout')"
-    (polylineClick)="onLineClick(categoryControl.value)"
-  ></amap-polyline>
-  <amap-polyline
-    [path]="pathToFactory"
-    [strokeColor]="isLineHovering ? '#3366FF' : '#000000'"
-    [borderWeight]="3"
-    [strokeWeight]="5"
-    [isOutline]="isLineHovering ? true : false"
-    (mouseOver)="onLineHover($event, 'mouseover')"
-    (mouseOut)="onLineHover($event, 'mouseout')"
-    (polylineClick)="onLineClick(categoryControl.value)"
-  ></amap-polyline>
+  <ng-container
+    *ngIf="
+      (isShowTransferStation || isShowFactory) && temp$ | async as data;
+      else normal
+    "
+  >
+    <ng-container *ngIf="isShowTransferStation">
+      <ng-container *ngFor="let datum of data">
+        <amap-polyline
+          [path]="datum.transferStation.path"
+          [borderWeight]="3"
+          [lineJoin]="'round'"
+          [strokeWeight]="5"
+          [strokeOpacity]="0.5"
+          [strokeColor]="'#3366FF'"
+          [strokeStyle]="'solid'"
+        ></amap-polyline>
+        <amap-marker
+          [position]="
+            datum.transferStation.path[datum.transferStation.path.length - 1]
+          "
+          [title]="datum.transferStation.name"
+        ></amap-marker>
+      </ng-container>
+    </ng-container>
+    <ng-container *ngIf="isShowFactory">
+      <ng-container *ngFor="let datum of data">
+        <amap-polyline
+          [path]="datum.factory.path"
+          [borderWeight]="3"
+          [lineJoin]="'round'"
+          [strokeOpacity]="0.5"
+          [strokeWeight]="5"
+          [strokeColor]="'red'"
+          [strokeStyle]="'solid'"
+        ></amap-polyline>
+        <amap-marker
+          [position]="datum.factory.path[datum.factory.path.length - 2]"
+          [title]="datum.factory.name"
+        ></amap-marker>
+      </ng-container>
+    </ng-container>
+  </ng-container>
+
+  <ng-template #normal>
+    <amap-polyline
+      [path]="pathToTransferStation"
+      [borderWeight]="3"
+      [lineJoin]="'round'"
+      [strokeWeight]="5"
+      [outlineColor]="'red'"
+      (mouseOver)="onLineHover($event, 'mouseover')"
+      (mouseOut)="onLineHover($event, 'mouseout')"
+      (polylineClick)="onLineClick(categoryControl.value)"
+    ></amap-polyline>
+    <amap-polyline
+      [path]="pathToFactory"
+      [strokeColor]="isLineHovering ? '#3366FF' : '#000000'"
+      [lineJoin]="'round'"
+      [outlineColor]="'red'"
+      [borderWeight]="3"
+      [strokeWeight]="5"
+      (mouseOver)="onLineHover($event, 'mouseover')"
+      (mouseOut)="onLineHover($event, 'mouseout')"
+      (polylineClick)="onLineClick(categoryControl.value)"
+    ></amap-polyline
+  ></ng-template>
 </ngx-amap>
-<mat-expansion-panel id="searchPanel" cdkDragBoundry=".map-container" cdkDrag>
+<mat-expansion-panel id="searchPanel" cdkDragBoundry=".amap-layer" cdkDrag>
   <mat-expansion-panel-header>
     侬晓得哇？
   </mat-expansion-panel-header>
@@ -39,41 +87,47 @@
       #stepLocation
       label="step1"
       state="location"
-      [completed]="isPlaceSearchComplete$ | async"
+      [completed]="(isPlaceSearchComplete$ | async) && addressControl.valid"
     >
-      <ng-template matStepLabel>Find your location</ng-template>
-      <mat-form-field class="selector">
+      <ng-template matStepLabel>输入起始位置</ng-template>
+
+      <mat-form-field>
         <input
           matInput
           [formControl]="addressControl"
           type="text"
-          placeholder="input your address"
+          placeholder="请输入地址"
           required
         />
       </mat-form-field>
+
       <div>
         <button
           mat-button
           (click)="applyPlaceSearch(addressControl.value)"
           [disabled]="isPlaceSearchPending || addressControl.invalid"
         >
-          Search
+          搜索
         </button>
         <button
           mat-button
           matStepperNext
-          [disabled]="isPlaceSearchPending || !(isPlaceSearchComplete$ | async)"
+          [disabled]="
+            isPlaceSearchPending ||
+            !(isPlaceSearchComplete$ | async) ||
+            addressControl.invalid
+          "
         >
-          Next
+          下一步
         </button>
       </div>
     </mat-step>
     <mat-step
       label="step2"
       state="category"
-      [completed]="isWalkNaviComplete$ | async"
+      [completed]="isDriveNaviComplete$ | async"
     >
-      <ng-template matStepLabel>choose cate</ng-template>
+      <ng-template matStepLabel>选择垃圾类型</ng-template>
       <mat-form-field class="selector">
         <mat-label>分类</mat-label>
         <mat-select [formControl]="categoryControl">

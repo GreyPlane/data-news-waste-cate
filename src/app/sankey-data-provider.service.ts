@@ -1,48 +1,55 @@
-import { Injectable } from "@angular/core";
-import { AmapDrivingService, Poi, AmapDrivingWrapper } from "ngx-amap";
-import { from, interval } from "rxjs";
+import { Injectable, OnInit } from "@angular/core";
+import { AmapDrivingService, AmapDrivingWrapper, Poi } from "ngx-amap";
+import { from, Subscription } from "rxjs";
 import {
   groupBy,
   map,
   mergeAll,
   mergeMap,
-  toArray,
-  combineAll,
-  skip,
-  tap,
   take,
-  catchError
+  tap,
+  toArray
 } from "rxjs/operators";
 import { PathScheduleService } from "src/app/path-schedule.service";
 import { WASTE_CATEGORY } from "src/constants/enum";
 import { CATEGORY_OF_FACTORY, DISTRICT, Position } from "src/types/data";
 import { Link, Node } from "src/types/sankey";
-import { promisify } from "util";
-import { resolve } from "url";
+import { HttpClient } from "@angular/common/http";
+import { StreetData } from "src/constants/data";
 
 @Injectable({
   providedIn: "root"
 })
 export class SankeyDataProviderService {
+  destFactories: Set<string> = new Set();
+  destTansferStations: Set<string> = new Set();
+  sub: Subscription;
   constructor(
     private pathScheduler: PathScheduleService,
-    private driveNaviService: AmapDrivingService
+    private driveNaviService: AmapDrivingService,
+    private http: HttpClient
   ) {}
   getData(cate: WASTE_CATEGORY) {
     let { transferStations, factories } = this.pathScheduler.getData();
-    factories = factories.filter(
-      factory => this.factoryKind2WasteCate(factory.kind) === cate
+    factories = factories.filter(factory =>
+      this.factoryKind2WasteCate(factory.kind).some(kind => kind === cate)
     );
+    return this.http
+      .get<StreetData[]>("./assets/sanityCheck.json")
+      .pipe(map(s => this.genNode(factories, transferStations, s)));
+
+    // return this.genNode(factories, transferStations);
     // return this.shortest(factories, transferStations);
-    return this.shortest(factories, transferStations).pipe(
-      tap(v => console.log(v))
-      // map(shortest => this.genNode(factories, transferStations, shortest))
-    );
+    // return this.shortest(factories, transferStations).pipe(
+    //  tap(v => console.log(v))
+    // map(shortest => this.genNode(factories, transferStations, shortest))
+    // );
   }
   private genNode(
     factories: Position[],
     transferStations: Position[],
-    shortest: { tansferStation: string; factory: string }[]
+    streets: StreetData[]
+    // shortest: { tansferStation: string; factory: string }[]
   ) {
     let nodes: Node[] = [],
       links: Link[] = [];
@@ -52,34 +59,64 @@ export class SankeyDataProviderService {
         name: district
       });
     }
-    for (const transferStation of transferStations) {
+    for (const street of streets) {
+      // if ((street.name = "虹桥")) continue;
       nodes.push({
-        id: transferStation.name,
-        name: transferStation.name
+        id: street.name,
+        name: street.name
       });
       links.push({
-        source: transferStation.district,
-        target: transferStation.name,
+        source: street.district,
+        target: street.name,
         value: 1
       });
+      links.push({
+        source: street.name,
+        target: street.transferStation.name,
+        value: 1
+      });
+      const f = this.pathScheduler.getShortestTans2Fac(
+        transferStations.find(t => t.name === street.transferStation.name),
+        factories
+      );
+      links.push({
+        source: street.transferStation.name,
+        target: f.name,
+        value: 1
+      });
+      this.destFactories.add(f.name);
+      this.destTansferStations.add(street.transferStation.name);
+    }
+    for (const transferStation of transferStations) {
+      if (this.destTansferStations.has(transferStation.name)) {
+        nodes.push({
+          id: transferStation.name,
+          name: transferStation.name
+        });
+      }
 
+      /* const dest = this.pathScheduler.getShortestTans2Fac(
+        transferStation,
+        factories
+      ).name;
+      this.destFactories.push(dest);
       links.push({
         source: transferStation.name,
-        target: shortest.find(v => v.tansferStation === transferStation.name)
-          .factory,
-        /* this.pathScheduler.getShortestTans2Fac(
-          transferStation,
-          factories
-        ).name, */
+        target:
+          // shortest.find(v => v.tansferStation === transferStation.name)
+          //.factory,
+          dest,
         value: 1
-      });
+      }); */
     }
 
     for (const factory of factories) {
-      nodes.push({
-        id: factory.name,
-        name: factory.name
-      });
+      if (this.destFactories.has(factory.name)) {
+        nodes.push({
+          id: factory.name,
+          name: factory.name
+        });
+      }
 
       /*
     links.push({
@@ -158,20 +195,24 @@ export class SankeyDataProviderService {
       toArray()
     );
   }
-  private factoryKind2WasteCate(kind: CATEGORY_OF_FACTORY): WASTE_CATEGORY {
-    let cate: WASTE_CATEGORY;
+  private factoryKind2WasteCate(kind: CATEGORY_OF_FACTORY): WASTE_CATEGORY[] {
+    let cate: WASTE_CATEGORY[];
     switch (kind) {
       case CATEGORY_OF_FACTORY.BURNING:
-        cate = WASTE_CATEGORY.Dry;
+        cate = [WASTE_CATEGORY.Dry];
         break;
       case CATEGORY_OF_FACTORY.RECYCLE:
-        cate = WASTE_CATEGORY.Moist;
+        cate = [WASTE_CATEGORY.Moist, WASTE_CATEGORY.Recycle];
         break;
       case CATEGORY_OF_FACTORY.ORG_SOILD:
-        cate = WASTE_CATEGORY.Recycle;
+        cate = [WASTE_CATEGORY.Recycle];
         break;
       case CATEGORY_OF_FACTORY.LANDFILL:
-        cate = WASTE_CATEGORY.Harzard;
+        cate = [
+          WASTE_CATEGORY.Dry,
+          WASTE_CATEGORY.Moist,
+          WASTE_CATEGORY.Harzard
+        ];
       default:
         break;
     }

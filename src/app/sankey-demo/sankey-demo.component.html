@@ -9,9 +9,12 @@
 </ng-container>
 <ng-template #note>hold on......</ng-template>
 -->
+<div mat-dialog-content>
   <app-sankey
-    [svgHeight]="500"
-    [svgWidth]="1000"
-    [links]="links"
-    [nodes]="nodes"
+    *ngIf="data$ | async as data"
+    [svgHeight]="2500"
+    [svgWidth]="1200"
+    [links]="data.links"
+    [nodes]="data.nodes"
   ></app-sankey>
+</div>

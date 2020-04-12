@@ -12,6 +12,7 @@ import { MyMaterialModule } from "src/app/my-material/my-material.module";
 import { SankeyDemoComponent } from "src/app/sankey-demo/sankey-demo.component";
 import { SankeyComponent } from "src/app/sankey/sankey.component";
 import { SearchBarComponent } from "src/app/search-bar/search-bar.component";
+import { HttpClientJsonpModule, HttpClientModule } from "@angular/common/http";
 
 @NgModule({
   declarations: [
@@ -28,6 +29,7 @@ import { SearchBarComponent } from "src/app/search-bar/search-bar.component";
     AppRoutingModule,
     MyMaterialModule,
     ReactiveFormsModule,
+    HttpClientModule,
     RouterModule.forRoot([
       // { path: './', component: SearchBarComponent },
       //  { path: './Series1', component: AmapContainerComponent }

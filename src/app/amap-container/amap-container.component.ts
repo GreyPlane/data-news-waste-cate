@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from "@angular/core";
+import { Component, OnDestroy, OnInit, Input } from "@angular/core";
 import { MatDialog } from "@angular/material/dialog";
 import { MatSnackBar } from "@angular/material/snack-bar";
 import { Validators, FormControl } from "@angular/forms";
@@ -13,7 +13,10 @@ import {
   PoiList,
   WalkingResult,
   WalkRoute,
-  AmapDrivingService
+  AmapDrivingService,
+  AmapDrivingWrapper,
+  DrivingResult,
+  IIcon
 } from "ngx-amap";
 import { Observable, Subscription, Subject } from "rxjs";
 import { map, share, tap, takeUntil } from "rxjs/operators";
@@ -26,39 +29,16 @@ import {
 } from "src/constants/enum";
 import { SankeyDemoComponent } from "src/app/sankey-demo/sankey-demo.component";
 import { AssertionError } from "assert";
+import { Position } from "src/types/data";
+import { StreetData } from "src/constants/data";
+import { HttpClient } from "@angular/common/http";
+import { IconService } from 'ngx-amap/services/icon/icon.service';
 interface SearchResult {
   info: string;
   poiList: PoiList;
   keywordList?: any;
   cityList?: any;
 }
-type Some<U> = (U extends any
-? (k: U) => void
-: never) extends (k: infer I) => void
-  ? I
-  : never;
-let a: Some<
-  | {
-      s: string;
-    }
-  | {
-      n: number;
-    }
->;
-type ReturnType<T> = T extends (...args: any[]) => infer R ? R : T;
-let b: ReturnType<(s: boolean) => number>;
-
-function fff<T>(x: T) {
-  return x;
-}
-let f = (f, ff) => {
-  return 123;
-};
-interface F {
-  t: number;
-  f: boolean;
-}
-
 @Component({
   selector: "app-amap-container",
   templateUrl: "./amap-container.component.html",
@@ -66,10 +46,13 @@ interface F {
   providers: [PathScheduleService]
 })
 export class AmapContainerComponent implements OnInit, OnDestroy {
+  isShowTransferStation: boolean = false;
+  isShowFactory: boolean = false;
+  temp$: Observable<StreetData[]>;
   wasteCategories: WASTE_CATEGORY[] = [
     WASTE_CATEGORY.Dry,
     WASTE_CATEGORY.Moist,
-    WASTE_CATEGORY.Harzard,
+    // WASTE_CATEGORY.Harzard,
     WASTE_CATEGORY.Recycle
   ];
   wasteCategroiesName = wasteCategroiesName;
@@ -90,13 +73,19 @@ export class AmapContainerComponent implements OnInit, OnDestroy {
   isWalkNaviComplete$: Observable<boolean>;
   isWalkNaviPending = false;
 
+  amapDriveNaviPlugin: AmapDrivingWrapper;
+  driveNaviResult: DrivingResult;
+  isDriveNaviComplete$: Observable<boolean>;
+  isDriveNaviPending = false;
+
   pathToTransferStation: ILngLat[];
   pathToFactory: ILngLat[];
+  dest: { factory: Position; transferStation: Position };
 
   private _destroy$ = new Subject<void>();
 
   public addressControl = new FormControl("", Validators.required);
-  public categoryControl = new FormControl(WASTE_CATEGORY.Dry);
+  public categoryControl = new FormControl("");
   public isLineHovering: boolean = false;
   constructor(
     private readonly amapPlaceSearch: AmapPlaceSearchService,
@@ -104,13 +93,21 @@ export class AmapContainerComponent implements OnInit, OnDestroy {
     private readonly snackBar: MatSnackBar,
     private readonly dialog: MatDialog,
     private readonly pathSchedule: PathScheduleService,
-    private readonly amapDrive: AmapDrivingService
+    private readonly amapDriveNavi: AmapDrivingService,
+    private readonly http: HttpClient
   ) {}
 
   ngOnInit() {
     this.categoryControl.valueChanges
       .pipe(takeUntil(this._destroy$))
-      .subscribe(value => this.applyWalkNavi(value));
+      .subscribe(value => {
+        this.applyDriveNavi(value);
+      });
+      const a = IconService
+    // tslint:disable-next-line: no-backbone-get-set-outside-model
+    this.temp$ = this.http
+      .get<StreetData[]>("./assets/sanityCheck.json")
+      .pipe(takeUntil(this._destroy$));
   }
   ngOnDestroy() {
     // this.placeSearchErrorSub.unsubscribe();
@@ -121,19 +118,33 @@ export class AmapContainerComponent implements OnInit, OnDestroy {
   }
   errorHandler(err: string) {
     this.snackBar.open(`something wrong: ${err}, pls retry`, "ok", {
-      duration: 1000
+      duration: 10000
     });
+  }
+  clearMarkers() {
+    const amap = this.amap;
+    const markers = amap.getAllOverlays("marker");
+    amap.remove(markers);
+  }
+  showFactory() {
+    this.clearMarkers();
+    this.isShowFactory = !this.isShowFactory;
+  }
+  /**
+   * showTrans
+   */
+  public showTrans() {
+    this.clearMarkers;
+    this.isShowTransferStation = !this.isShowTransferStation;
   }
   onLineHover(e: any, type: "mouseover" | "mouseout") {
     switch (type) {
       case "mouseover":
-        //this.isLineHovering = true;
         e.target.setOptions({
           isOutline: true
         });
         break;
       case "mouseout":
-        //this.isLineHovering = false;
         e.target.setOptions({
           isOutline: false
         });
@@ -144,7 +155,9 @@ export class AmapContainerComponent implements OnInit, OnDestroy {
     }
   }
   onLineClick(category: WASTE_CATEGORY) {
-    this.dialog.open(SankeyDemoComponent);
+    this.dialog.open(ContentCardComponent, {
+      data: { category, dest: this.dest }
+    });
   }
   onMapReady(amap: Map) {
     this.isMapReady = true;
@@ -159,12 +172,18 @@ export class AmapContainerComponent implements OnInit, OnDestroy {
       // map: this.amap,
       autoFitView: true
     });
-    Promise.all([promisePS, promiseWN])
+    const promiseDN = this.amapDriveNavi.of({
+      // map: this.amap,
+      autoFitView: true
+    });
+    Promise.all([promisePS, promiseWN, promiseDN])
       .then(plugins => {
         this.amapPlaceSearchPlugin = plugins[0];
         this.initPlaceSearch();
         this.amapWalkNaviPlugin = plugins[1];
         this.initWalkNavi();
+        this.amapDriveNaviPlugin = plugins[2];
+        this.initDriveNavi();
       })
       .catch(err => console.log(`plugin init error: ${err}`));
   }
@@ -205,10 +224,58 @@ export class AmapContainerComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this._destroy$))
       .subscribe(err => this.errorHandler(err));
   }
+  initDriveNavi() {
+    this.isDriveNaviComplete$ = this.amapWalkNaviPlugin.on("complete").pipe(
+      tap(res => (this.driveNaviResult = res)),
+      map(res => (res.info === RESULT_STATUS.NO_DATA ? false : true)),
+      share()
+    );
+    this.amapDriveNaviPlugin
+      .on("error")
+      .pipe(takeUntil(this._destroy$))
+      .subscribe(err => this.errorHandler(err));
+  }
+  applyDriveNavi(category: WASTE_CATEGORY) {
+    if (category === WASTE_CATEGORY.Harzard) return;
+    const plugin = this.amapDriveNaviPlugin;
+    const start = this.selectedPoi;
+    const dest = this.pathSchedule.getPoint(start, category);
+    const markers = this.amap.getAllOverlays("marker");
+    this.dest = dest;
+    this.isDriveNaviPending = true;
+    Promise.all([
+      plugin.search(start.location, dest.transferStation.lnglgt, {}),
+      plugin.search(dest.transferStation.lnglgt, dest.factory.lnglgt, {})
+    ])
+      .then(driveResultes => {
+        const status = driveResultes.every(
+          result => result.status === RESULT_STATUS.COMPLETE
+        );
+        if (status) {
+          let trans = driveResultes[0].result;
+          let fac = driveResultes[1].result;
+          this.assertDriveResult(trans);
+          this.assertDriveResult(fac);
+          this.pathToTransferStation = trans.routes[0].steps
+            .map(step => step.path)
+            .reduce((acc, x) => acc.concat(x), []);
+          this.pathToFactory = fac.routes[0].steps
+            .map(step => step.path)
+            .reduce((acc, x) => acc.concat(x), []);
+          this.amap.remove(markers);
+          this.isShowFactory = false;
+          this.isShowTransferStation = false;
+          this.amap.setFitView();
+        }
+      })
+      .catch(err => this.errorHandler(err))
+      .finally(() => (this.isDriveNaviPending = false));
+  }
   applyWalkNavi(category: WASTE_CATEGORY) {
     const plugin = this.amapWalkNaviPlugin;
     const start = this.selectedPoi;
     const dest = this.pathSchedule.getPoint(start, category);
+    this.dest = dest;
     const markers = this.amap.getAllOverlays("marker");
     this.isWalkNaviPending = true;
     Promise.all([
@@ -243,14 +310,6 @@ export class AmapContainerComponent implements OnInit, OnDestroy {
       .catch(err => this.errorHandler(err))
       .finally(() => (this.isWalkNaviPending = false));
   }
-  async test() {
-    const plugin = await this.amapDrive.of();
-    const result = await plugin.search([
-      { keyword: "北京市地震局(公交站)", city: "北京" },
-      { keyword: "亦庄文化园(地铁站)", city: "北京" }
-    ]);
-    return;
-  }
   private assertWalkRoutes(routes: any): asserts routes is WalkRoute[] {
     Array.isArray(routes);
     this.assertWalkRoute(routes[0]);
@@ -263,6 +322,13 @@ export class AmapContainerComponent implements OnInit, OnDestroy {
   private assertWalkResult(
     result: string | WalkingResult
   ): asserts result is WalkingResult {
+    if (typeof result === "string") {
+      throw new AssertionError();
+    }
+  }
+  private assertDriveResult(
+    result: string | DrivingResult
+  ): asserts result is DrivingResult {
     if (typeof result === "string") {
       throw new AssertionError();
     }

@@ -25,13 +25,34 @@
       >
         <mat-icon aria-label="Side nav toggle icon">menu</mat-icon>
       </button>
-      <span>DN-waste</span>
+      <span>上海市垃圾流通网络</span>
       <span class="fill-space"></span>
       <nav *ngIf="!(isHandset$ | async)" mat-tab-nav-bar>
-        <a mat-tab-link>22</a>
-        <a mat-tab-link>2233</a>
+        <button mat-button [mat-menu-trigger-for]="sankeyMenu">
+          显示桑基图
+        </button>
+        <mat-menu #sankeyMenu="matMenu" yPosition="below">
+          <button
+            *ngFor="let cate of wasteCategroies"
+            (click)="openSankeyDialog(cate)"
+            mat-menu-item
+          >
+            {{ names[cate] }}
+          </button>
+        </mat-menu>
+        <button mat-button [mat-menu-trigger-for]="networkMenu">
+          显示网络图
+        </button>
+        <mat-menu #networkMenu="matMenu" yPosition="below">
+          <button mat-menu-item (click)="amap.showTrans()">
+            切换中转站显示
+          </button>
+          <button mat-menu-item (click)="amap.showFactory()">
+            切换处理厂显示
+          </button>
+        </mat-menu>
       </nav>
     </mat-toolbar>
-    <app-amap-container> </app-amap-container>
+    <app-amap-container #amap class="map-container"> </app-amap-container>
   </mat-sidenav-content>
 </mat-sidenav-container>

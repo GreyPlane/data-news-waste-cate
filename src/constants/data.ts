@@ -284,5 +284,18 @@ function convertFac(raw: typeof rawDataTwo) {
   }
   return positions;
 }
+export interface StreetData {
+  name: string;
+  district: string;
+  transferStation: {
+    name: string;
+    path: any;
+  };
+  factory: {
+    name: string;
+    path: any;
+  };
+}
+
 export const positionsT = convert(rawData);
 export const positionsF = convertFac(rawDataTwo);

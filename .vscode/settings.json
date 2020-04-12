@@ -1,0 +1,31 @@
+{
+  "breadcrumbs.enabled": true,
+  "debug.toolBarLocation": "floating",
+  "editor.autoIndent": "advanced",
+  "editor.codeLens": false,
+  "editor.cursorBlinking": "smooth",
+  "editor.cursorStyle": "line",
+  "editor.fontSize": 16,
+  // "editor.fontFamily": "Dank Mono, Operator Mono, Fira Code, Inconsolata, Menlo",
+  "editor.fontLigatures": true,
+  "editor.formatOnPaste": true,
+  "editor.formatOnType": false,
+  "editor.formatOnSave": true,
+  "editor.letterSpacing": 0.5,
+  "editor.lineHeight": 25,
+  "files.autoSave": "afterDelay",
+  "files.autoSaveDelay": 1000,
+  "files.defaultLanguage": "typescript",
+  "files.trimTrailingWhitespace": true,
+  "search.showLineNumbers": true,
+  "workbench.iconTheme": "material-icon-theme",
+  "workbench.colorCustomizations": {},
+  "workbench.colorTheme": "Winter is Coming (Dark Blue)",
+  "zenMode.centerLayout": false,
+  "prettier.singleQuote": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll": true
+  },
+  "tslint.packageManager": "yarn",
+  "tslint.exclude": "node_modules/**"
+}

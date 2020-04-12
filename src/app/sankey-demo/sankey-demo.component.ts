@@ -1,8 +1,9 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, OnInit, Inject } from "@angular/core";
 import { SankeyDataProviderService } from "src/app/sankey-data-provider.service";
 import { WASTE_CATEGORY } from "src/constants/enum";
 import { Observable } from "rxjs";
 import { Link, Node } from "src/types/sankey";
+import { MAT_DIALOG_DATA } from "@angular/material/dialog";
 @Component({
   selector: "app-sankey-demo",
   templateUrl: "./sankey-demo.component.html",
@@ -13,15 +14,16 @@ export class SankeyDemoComponent implements OnInit {
   data$: Observable<{ nodes: Node[]; links: Link[] }>;
   links: Link[];
   nodes: Node[];
-  constructor(private sankeyDataProvider: SankeyDataProviderService) {}
+  constructor(
+    private sankeyDataProvider: SankeyDataProviderService,
+    @Inject(MAT_DIALOG_DATA) private category: WASTE_CATEGORY
+  ) {}
 
   ngOnInit() {
-    this.sankeyDataProvider
-      .getData(WASTE_CATEGORY.Dry)
-      .subscribe(
-        x =>
-         console.log(x));
-    this.nodes = [
+    this.data$ = this.sankeyDataProvider.getData(this.category);
+    //this.nodes = nodes;
+    //this.links = links;
+    /*  this.nodes = [
       { id: "Alice", name: "Alice" },
       { id: "Bob", name: "Bob" },
       { id: "Carol", name: "Carol" },
@@ -35,5 +37,6 @@ export class SankeyDemoComponent implements OnInit {
       { source: 3, target: 1, value: 50 },
       { source: 4, target: 2, value: 50 }
     ];
+    */
   }
 }
