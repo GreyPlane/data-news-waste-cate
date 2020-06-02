@@ -3,7 +3,7 @@ import {
   Input,
   OnChanges,
   OnInit,
-  SimpleChanges
+  SimpleChanges,
 } from "@angular/core";
 import { sankey, sankeyJustify, sankeyLinkHorizontal } from "d3-sankey";
 import { scaleOrdinal } from "d3-scale";
@@ -14,12 +14,12 @@ import {
   Link,
   LinkData,
   Node,
-  NodeData
+  NodeData,
 } from "src/types/sankey";
 @Component({
   selector: "app-sankey",
   templateUrl: "./sankey.component.html",
-  styleUrls: ["./sankey.component.scss"]
+  styleUrls: ["./sankey.component.scss"],
 })
 export class SankeyComponent implements OnInit, OnChanges {
   @Input() alignment: ALIGNMENT = ALIGNMENT.JUSTIFY;
@@ -49,8 +49,6 @@ export class SankeyComponent implements OnInit, OnChanges {
   }
 
   private generate(nodes = this.nodes, links = this.links) {
-    // const svg = this.svgElement.nativeElement;
-    // const { width, height } = svg.getBoundingClientRect();
     const width = this.svgWidth;
     const height = this.svgHeight;
 
@@ -63,13 +61,13 @@ export class SankeyComponent implements OnInit, OnChanges {
         [20, 20],
         [
           width - this.margin.left - this.margin.right,
-          height - this.margin.top - this.margin.bottom
-        ]
+          height - this.margin.top - this.margin.bottom,
+        ],
       ])
-      .nodeId(d => d.id);
+      .nodeId((d) => d.id);
     const data = {
       nodes,
-      links
+      links,
     };
     const layout = generator(data);
 
@@ -79,7 +77,7 @@ export class SankeyComponent implements OnInit, OnChanges {
       node.label = {
         x: node.x0 < width / 2 ? node.x1 + 6 : node.x0 - 50,
         y: (node.y1 + node.y0) / 2,
-        dy: this.labelPadding
+        dy: this.labelPadding,
       };
     }
     for (const link of layout.links) {

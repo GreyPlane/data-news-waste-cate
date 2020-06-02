@@ -27,10 +27,16 @@
           [strokeStyle]="'solid'"
         ></amap-polyline>
         <amap-marker
+          [position]="datum.transferStation.path[0]"
+          [title]="datum.name"
+          [icon]="homeIcon"
+        ></amap-marker>
+        <amap-marker
           [position]="
             datum.transferStation.path[datum.transferStation.path.length - 1]
           "
           [title]="datum.transferStation.name"
+          [icon]="transferIcon"
         ></amap-marker>
       </ng-container>
     </ng-container>
@@ -46,8 +52,16 @@
           [strokeStyle]="'solid'"
         ></amap-polyline>
         <amap-marker
+          [position]="
+            datum.transferStation.path[datum.transferStation.path.length - 1]
+          "
+          [title]="datum.transferStation.name"
+          [icon]="transferIcon"
+        ></amap-marker>
+        <amap-marker
           [position]="datum.factory.path[datum.factory.path.length - 2]"
           [title]="datum.factory.name"
+          [icon]="factoryIcon"
         ></amap-marker>
       </ng-container>
     </ng-container>
@@ -74,8 +88,26 @@
       (mouseOver)="onLineHover($event, 'mouseover')"
       (mouseOut)="onLineHover($event, 'mouseout')"
       (polylineClick)="onLineClick(categoryControl.value)"
-    ></amap-polyline
-  ></ng-template>
+    ></amap-polyline>
+    <amap-marker
+      *ngIf="pathToTransferStation"
+      [position]="pathToTransferStation[0]"
+      [title]="selectedPoi.name"
+      [icon]="homeIcon"
+    ></amap-marker>
+    <amap-marker
+      *ngIf="pathToTransferStation"
+      [position]="pathToTransferStation[pathToTransferStation.length - 1]"
+      [title]="dest.transferStation.name"
+      [icon]="transferIcon"
+    ></amap-marker>
+    <amap-marker
+      *ngIf="pathToFactory"
+      [position]="pathToFactory[pathToFactory.length - 1]"
+      [title]="dest.factory.name"
+      [icon]="factoryIcon"
+    ></amap-marker>
+  </ng-template>
 </ngx-amap>
 <mat-expansion-panel id="searchPanel" cdkDragBoundry=".amap-layer" cdkDrag>
   <mat-expansion-panel-header>

@@ -34,6 +34,7 @@ export class SankeyDataProviderService {
     factories = factories.filter(factory =>
       this.factoryKind2WasteCate(factory.kind).some(kind => kind === cate)
     );
+    // tslint:disable-next-line: no-backbone-get-set-outside-model
     return this.http
       .get<StreetData[]>("./assets/sanityCheck.json")
       .pipe(map(s => this.genNode(factories, transferStations, s)));

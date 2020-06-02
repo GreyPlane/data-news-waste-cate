@@ -6,11 +6,11 @@ import {
   CATEGORY_OF_FACTORY,
   DISTRICT,
   Position,
-  POSITION_TAG
+  POSITION_TAG,
 } from "src/types/data";
 
 @Injectable({
-  providedIn: "root"
+  providedIn: "root",
 })
 export class PathScheduleService {
   constructor() {}
@@ -70,14 +70,14 @@ export class PathScheduleService {
       case "local":
         return {
           factories: positionsF,
-          transferStations: positionsT
+          transferStations: positionsT,
         };
 
       default:
         console.log("not avaliable");
         return {
           factories: positionsF,
-          transferStations: positionsT
+          transferStations: positionsT,
         };
     }
   }
@@ -85,9 +85,9 @@ export class PathScheduleService {
     let fn: (fac: Position) => boolean;
     const ffn = (...cate: CATEGORY_OF_FACTORY[]) => (fac: Position) => {
       if (fac.tag === POSITION_TAG.FACTORY) {
-        return cate.some(c => fac.kind! === c);
+        return cate.some((c) => fac.kind! === c);
       } else {
-        throw "must be factory positions";
+        throw "must be a factory positions";
       }
     };
     switch (cate) {
@@ -99,9 +99,6 @@ export class PathScheduleService {
         break;
       case WASTE_CATEGORY.Recycle:
         fn = ffn(CATEGORY_OF_FACTORY.ORG_SOILD, CATEGORY_OF_FACTORY.RECYCLE);
-        break;
-      case WASTE_CATEGORY.Harzard:
-        // wip
         break;
       default:
         break;
@@ -115,9 +112,9 @@ export class PathScheduleService {
       this.getFactroyCateFilter(cate)
     );
     let factoriesMatchedDist = factoriesMatchedCate.filter(
-      fac => fac.district === district
+      (fac) => fac.district === district
     );
-    let transfersMatchedDist = transferStations.filter(tra =>
+    let transfersMatchedDist = transferStations.filter((tra) =>
       tra.district === DISTRICT.PD
         ? tra.district + "新区" === district
         : tra.district + "区" === district
@@ -133,7 +130,7 @@ export class PathScheduleService {
         factoriesMatchedCate,
         t.lnglgt
       ),
-      transferStation: t
+      transferStation: t,
     };
   }
   getShortestTans2Fac(
